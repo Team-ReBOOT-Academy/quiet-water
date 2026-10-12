@@ -8,7 +8,7 @@
 решением `BUY` / `SELL` / `HOLD` и отдаёт диагностику `GET /health`.
 
 Автор: **llnightll**  
-Проектный документ: [project-description.md](project-description.md)  
+Проектный документ: [docs/project-description.md](docs/project-description.md)  
 Идентификатор сервиса / будущий `strategyId`: `quiet-water`
 
 ## Предварительно выбранная стратегия
@@ -121,4 +121,4 @@ docker stop quiet-water
 - реальные заявки брокеру — платформа их не отправляет
 
 Подробные границы, роли, контракт событий и обоснование Kotlin/Ktor —
-в [project-description.md](project-description.md).
+в [docs/project-description.md](docs/project-description.md).
