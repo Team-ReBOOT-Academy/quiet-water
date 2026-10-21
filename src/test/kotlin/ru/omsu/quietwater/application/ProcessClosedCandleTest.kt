@@ -1,6 +1,7 @@
 package ru.omsu.quietwater.application
 
 import ru.omsu.quietwater.adapter.persistence.InMemoryInstrumentWindowStore
+import ru.omsu.quietwater.application.candle.ClosedCandleCommand
 import ru.omsu.quietwater.application.candle.ProcessClosedCandle
 import ru.omsu.quietwater.application.port.outbound.RecommendationPublisher
 import ru.omsu.quietwater.domain.candle.Candle
@@ -40,18 +41,22 @@ class ProcessClosedCandleTest {
         )
 
         val recommendation = useCase.handle(
-            Candle(
-                instrument = Instrument("MOEX"),
-                sequenceNumber = 0,
-                open = 10.0,
-                high = 10.0,
-                low = 10.0,
-                close = 10.0,
-                volume = 1.0,
-                runId = "run-1"
+            ClosedCandleCommand(
+                sourceEventId = "evt-1",
+                candle = Candle(
+                    instrument = Instrument("MOEX"),
+                    sequenceNumber = 0,
+                    open = 10.0,
+                    high = 10.0,
+                    low = 10.0,
+                    close = 10.0,
+                    volume = 1.0,
+                    runId = "run-1"
+                )
             )
         )
 
+        assertEquals("evt-1", recommendation.sourceEventId)
         assertEquals(Signal.HOLD, recommendation.signal)
         assertEquals(Phase.LEARN, recommendation.phase)
         assertEquals(1, published.size)
