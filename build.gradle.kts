@@ -10,6 +10,7 @@ version = "1.0.0"
 val ktorVersion: String by project
 val serializationJsonVersion: String by project
 val logbackVersion: String by project
+val kafkaVersion: String by project
 val jvmToolchainVersion: String by project
 
 repositories {
@@ -32,6 +33,7 @@ dependencies {
     implementation("io.ktor:ktor-serialization-kotlinx-json-jvm:$ktorVersion")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$serializationJsonVersion")
     implementation("ch.qos.logback:logback-classic:$logbackVersion")
+    implementation("org.apache.kafka:kafka-clients:$kafkaVersion")
 
     testImplementation(kotlin("test"))
     testImplementation("io.ktor:ktor-server-test-host-jvm:$ktorVersion")
