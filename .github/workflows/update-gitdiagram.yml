@@ -1,0 +1,61 @@
+name: Update GitDiagram
+
+on:
+  schedule:
+    - cron: "10 3 * * *"
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "src/**"
+      - "README.md"
+      - "docs/project-description.md"
+      - ".github/workflows/update-gitdiagram.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download the current diagram
+        run: curl -fsSL "https://gitdiagram.com/team-reboot-academy/quiet-water.md" -o /tmp/gitdiagram.md
+
+      - name: Replace the generated section
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          remote = Path("/tmp/gitdiagram.md").read_text(encoding="utf-8").strip() + "\n"
+          header = "\n".join([
+              "# Схема GitDiagram",
+              "",
+              "Интерактивная схема, она же источник автообновления: https://gitdiagram.com/team-reboot-academy/quiet-water",
+              "",
+              "Текст между метками подставляет [workflow](../.github/workflows/update-gitdiagram.yml) из markdown-версии этой страницы. Этот блок вручную не правят.",
+              "",
+          ]) + "\n"
+          document = (
+              header
+              + "<!-- gitdiagram:start -->\n"
+              + remote
+              + "<!-- gitdiagram:end -->\n"
+          )
+          Path("docs/gitdiagram.md").write_text(document, encoding="utf-8", newline="\n")
+          PY
+
+      - name: Commit the diagram when it changed
+        run: |
+          git add docs/gitdiagram.md
+          if git diff --cached --quiet; then
+            echo "Diagram is unchanged"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "docs: refresh gitdiagram"
+          git push
