@@ -5,6 +5,7 @@ import ru.omsu.quietwater.domain.signal.Signal
 import ru.omsu.quietwater.domain.walkforward.Phase
 
 data class Recommendation(
+    val sourceEventId: String,
     val instrument: Instrument,
     val runId: String,
     val sequenceNumber: Long,

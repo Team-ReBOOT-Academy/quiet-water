@@ -2,7 +2,6 @@ package ru.omsu.quietwater.application.candle
 
 import ru.omsu.quietwater.application.port.outbound.InstrumentWindowStore
 import ru.omsu.quietwater.application.port.outbound.RecommendationPublisher
-import ru.omsu.quietwater.domain.candle.Candle
 import ru.omsu.quietwater.domain.recommendation.Recommendation
 import ru.omsu.quietwater.domain.signal.Signal
 import ru.omsu.quietwater.domain.walkforward.WalkForwardPolicy
@@ -13,10 +12,12 @@ class ProcessClosedCandle(
     private val publisher: RecommendationPublisher
 ) {
 
-    fun handle(candle: Candle): Recommendation {
+    fun handle(command: ClosedCandleCommand): Recommendation {
+        val candle = command.candle
         store.append(candle)
         val decision = policy.decide(store.window(candle.instrument))
         val recommendation = Recommendation(
+            sourceEventId = command.sourceEventId,
             instrument = candle.instrument,
             runId = candle.runId,
             sequenceNumber = candle.sequenceNumber,

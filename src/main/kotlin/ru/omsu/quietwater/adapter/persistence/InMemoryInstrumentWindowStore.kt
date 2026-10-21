@@ -12,6 +12,10 @@ class InMemoryInstrumentWindowStore(
 
     override fun append(candle: Candle) {
         val deque = windows.getOrPut(candle.instrument.key) { ArrayDeque() }
+        val last = deque.lastOrNull()
+        if (last != null && last.runId == candle.runId && last.sequenceNumber == candle.sequenceNumber) {
+            return
+        }
         deque.addLast(candle)
         while (deque.size > maxCandlesPerInstrument) {
             deque.removeFirst()
