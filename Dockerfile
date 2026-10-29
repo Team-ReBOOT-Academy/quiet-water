@@ -1,5 +1,4 @@
-# Сборка и запуск без IDE: тот же JDK 24, что и локальный toolchain.
-FROM eclipse-temurin:24-jdk AS build
+FROM eclipse-temurin:25-jdk AS build
 WORKDIR /src
 
 COPY gradlew settings.gradle.kts build.gradle.kts gradle.properties ./
@@ -8,7 +7,7 @@ COPY src ./src
 
 RUN chmod +x ./gradlew && ./gradlew --no-daemon installDist
 
-FROM eclipse-temurin:24-jre
+FROM eclipse-temurin:25-jre
 WORKDIR /app
 
 COPY --from=build /src/build/install/quiet-water /app
