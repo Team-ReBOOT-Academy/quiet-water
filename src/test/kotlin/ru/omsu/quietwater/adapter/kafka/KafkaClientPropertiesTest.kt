@@ -19,7 +19,7 @@ class KafkaClientPropertiesTest {
         assertEquals("earliest", properties.getProperty(KafkaClientProperties.AUTO_OFFSET_RESET))
         assertEquals("false", properties.getProperty(KafkaClientProperties.ENABLE_AUTO_COMMIT))
         assertEquals("SASL_SSL", properties.getProperty(KafkaClientProperties.SECURITY_PROTOCOL))
-        assertEquals("SCRAM-SHA-512", properties.getProperty(KafkaClientProperties.SASL_MECHANISM))
+        assertEquals("SCRAM-SHA-256", properties.getProperty(KafkaClientProperties.SASL_MECHANISM))
         val jaas = properties.getProperty(KafkaClientProperties.SASL_JAAS_CONFIG)
         assertTrue(jaas.contains("ScramLoginModule"))
         assertTrue(jaas.contains("student"))
