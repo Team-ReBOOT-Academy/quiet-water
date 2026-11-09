@@ -16,6 +16,8 @@
 
 Quiet Water is a Kotlin strategy service for the Teacher Trading Platform: it consumes closed-candle events, builds per-instrument windows, evaluates a walk-forward RSI strategy, and publishes BUY/SELL/HOLD recommendations. A separate health path reports service and Kafka status over HTTP. The README documents the strategy stages and Kafka role; source excerpts show application wiring and candle-processing calls. Some adapter internals were not excerpted, so their connections are included only where the SOURCE INDEX or README supports them.
 
+Main entry points: [`src/main/kotlin/ru/omsu/quietwater/application/candle/ProcessClosedCandle.kt`](https://github.com/team-reboot-academy/quiet-water/blob/main/src/main/kotlin/ru/omsu/quietwater/application/candle/ProcessClosedCandle.kt) (Process closed candle), [`src/main/kotlin/ru/omsu/quietwater/adapter/config/EnvConfig.kt`](https://github.com/team-reboot-academy/quiet-water/blob/main/src/main/kotlin/ru/omsu/quietwater/adapter/config/EnvConfig.kt) (Environment config), [`src/main/kotlin/ru/omsu/quietwater/adapter/kafka/inbound/KafkaCandleListener.kt`](https://github.com/team-reboot-academy/quiet-water/blob/main/src/main/kotlin/ru/omsu/quietwater/adapter/kafka/inbound/KafkaCandleListener.kt) (Candle listener), [`src/main/kotlin/ru/omsu/quietwater/adapter/kafka/outbound/KafkaRecommendationPublisher.kt`](https://github.com/team-reboot-academy/quiet-water/blob/main/src/main/kotlin/ru/omsu/quietwater/adapter/kafka/outbound/KafkaRecommendationPublisher.kt) (Recommendation publisher)
+
 ## Diagram (Mermaid)
 
 ```mermaid
