@@ -27,7 +27,6 @@ import ru.omsu.quietwater.application.candle.ProcessClosedCandle
 import ru.omsu.quietwater.application.health.GetHealthStatus
 import ru.omsu.quietwater.application.port.inbound.CandleListener
 import ru.omsu.quietwater.application.registration.RegistrationSession
-import ru.omsu.quietwater.domain.walkforward.WalkForwardPolicy
 
 class QuietWaterApplication(
     private val config: EnvConfig
@@ -59,7 +58,7 @@ class QuietWaterApplication(
     )
     private val processClosedCandle = ProcessClosedCandle(
         store = store,
-        policy = WalkForwardPolicy(config.walkForwardParameters),
+        baseline = config.baselineHold,
         publisher = publisher
     )
     private val candleListener: CandleListener = KafkaCandleListener(

@@ -8,6 +8,7 @@ data class RecommendationPayloadDto(
     val sourceEventId: String,
     val runId: String,
     val secretKey: String,
+    val studentId: String,
     val strategyId: String,
     val accountId: String,
     val groupId: String,
@@ -17,5 +18,7 @@ data class RecommendationPayloadDto(
     val signal: String,
     val confidence: Double,
     val suggestedQuantity: Int,
-    val dataQuality: String
+    val dataQuality: String,
+    val reason: String,
+    val processingTimeMs: Long
 )

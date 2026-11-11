@@ -1,0 +1,19 @@
+{
+  "eventId": "candle-example-1",
+  "eventType": "market.candle.closed",
+  "schemaVersion": "1.0",
+  "occurredAt": "2026-11-12T00:00:00Z",
+  "correlationId": "run-example-1",
+  "causationId": "market-source-1",
+  "producer": "teacher-platform",
+  "payload": {
+    "instrument": "SBER",
+    "runId": "run-example-1",
+    "sequenceNumber": 1,
+    "open": 300.0,
+    "high": 305.0,
+    "low": 299.0,
+    "close": 304.0,
+    "volume": 1000.0
+  }
+}

@@ -2,10 +2,10 @@ package ru.omsu.quietwater.domain.recommendation
 
 import ru.omsu.quietwater.domain.candle.Instrument
 import ru.omsu.quietwater.domain.signal.Signal
-import ru.omsu.quietwater.domain.walkforward.Phase
 
 data class Recommendation(
     val sourceEventId: String,
+    val correlationId: String,
     val instrument: Instrument,
     val runId: String,
     val sequenceNumber: Long,
@@ -14,5 +14,5 @@ data class Recommendation(
     val suggestedQuantity: Int,
     val dataQuality: String,
     val reason: String,
-    val phase: Phase
+    val processingTimeMs: Long
 )

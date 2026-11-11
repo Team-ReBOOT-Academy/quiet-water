@@ -1,6 +1,7 @@
 package ru.omsu.quietwater.adapter.kafka.inbound
 
 import ru.omsu.quietwater.adapter.config.EnvConfig
+import ru.omsu.quietwater.adapter.kafka.CandleEventValidator
 import ru.omsu.quietwater.adapter.kafka.CandleMessageMapper
 import ru.omsu.quietwater.adapter.kafka.PlatformEventCodec
 import ru.omsu.quietwater.adapter.kafka.ProcessedEventIds
@@ -22,6 +23,7 @@ class IncomingEventHandler(
     private val log: StructuredLog
 ) {
 
+    private val validator = CandleEventValidator(config)
     private val pendingCandles = ArrayDeque<ru.omsu.quietwater.application.candle.ClosedCandleCommand>()
 
     fun handle(raw: String) {
@@ -37,9 +39,24 @@ class IncomingEventHandler(
             return
         }
         when (envelope.eventType) {
-            config.events.registrationAccepted -> onAccepted(envelope.eventId, rawPayload(envelope))
-            config.events.registrationRejected -> onRejected(envelope.eventId, rawPayload(envelope))
+            config.events.registrationAccepted -> {
+                val payload = rawPayload(envelope)
+                if (addressedToUs(envelope, payload)) {
+                    onAccepted(envelope.eventId, payload)
+                } else {
+                    ignoreForeignRegistration(envelope)
+                }
+            }
+            config.events.registrationRejected -> {
+                val payload = rawPayload(envelope)
+                if (addressedToUs(envelope, payload)) {
+                    onRejected(envelope.eventId, payload)
+                } else {
+                    ignoreForeignRegistration(envelope)
+                }
+            }
             config.events.candleClosed -> onCandle(envelope)
+            config.events.registrationRequest -> Unit
             else -> log.info(
                 "event.ignored",
                 mapOf("eventType" to envelope.eventType, "sourceEventId" to envelope.eventId)
@@ -62,9 +79,9 @@ class IncomingEventHandler(
             return
         }
         val accountId = payload.accountId?.trim().orEmpty()
-        val groupId = payload.groupId?.trim().orEmpty()
+        val groupId = payload.groupId?.trim().orEmpty().ifEmpty { config.studyGroup }
         val sessionId = payload.sessionId?.trim().orEmpty()
-        val secretKey = payload.secretKey?.trim().orEmpty()
+        val secretKey = config.registrationSecretKey
         val missing = buildList {
             if (accountId.isEmpty()) add("accountId")
             if (groupId.isEmpty()) add("groupId")
@@ -115,6 +132,10 @@ class IncomingEventHandler(
     }
 
     private fun onCandle(envelope: ru.omsu.quietwater.adapter.kafka.dto.EventEnvelopeDto) {
+        val problems = validator.problems(envelope)
+        if (problems.isNotEmpty()) {
+            throw UnreadableEvent("candle rejected before processing: ${problems.joinToString(", ")}")
+        }
         val command = mapper.map(envelope) ?: throw UnreadableEvent("candle payload is incomplete")
         log.info(
             "candle.received",
@@ -140,6 +161,28 @@ class IncomingEventHandler(
         while (pendingCandles.isNotEmpty()) {
             processClosedCandle.handle(pendingCandles.removeFirst())
         }
+    }
+
+    private fun addressedToUs(
+        envelope: ru.omsu.quietwater.adapter.kafka.dto.EventEnvelopeDto,
+        payload: RegistrationResultPayload
+    ): Boolean {
+        if (session.owns(envelope.correlationId) || session.owns(envelope.causationId)) {
+            return true
+        }
+        val key = payload.secretKey?.trim().orEmpty()
+        if (key.isNotEmpty()) {
+            return key == config.registrationSecretKey
+        }
+        val name = payload.accountName?.trim().orEmpty()
+        return name.isNotEmpty() && name == config.displayName
+    }
+
+    private fun ignoreForeignRegistration(envelope: ru.omsu.quietwater.adapter.kafka.dto.EventEnvelopeDto) {
+        log.info(
+            "registration.ignored",
+            mapOf("eventType" to envelope.eventType, "sourceEventId" to envelope.eventId)
+        )
     }
 
     private fun identityFields(eventId: String): Map<String, String> {

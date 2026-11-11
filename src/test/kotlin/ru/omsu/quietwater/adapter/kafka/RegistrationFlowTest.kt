@@ -12,7 +12,6 @@ import ru.omsu.quietwater.application.candle.ProcessClosedCandle
 import ru.omsu.quietwater.application.port.outbound.OutboundSender
 import ru.omsu.quietwater.application.registration.RegistrationPhase
 import ru.omsu.quietwater.application.registration.RegistrationSession
-import ru.omsu.quietwater.domain.walkforward.WalkForwardPolicy
 import java.time.Instant
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -27,11 +26,15 @@ class RegistrationFlowTest {
         fixture.registration.sendIfNeeded()
 
         assertEquals(1, fixture.sender.sent.size)
-        val body = fixture.sender.sent.single().value
+        val sent = fixture.sender.sent.single()
+        assertEquals("account.registration.request", sent.topic)
+        val body = sent.value
         assertTrue(body.contains("account.registration.request"))
+        assertTrue(body.contains("\"accountName\":\"Quiet Water\""))
+        assertTrue(body.contains("\"groupId\":\"test-group\""))
+        assertTrue(body.contains("\"secretKey\":\"student\""))
         assertTrue(body.contains("llnightll"))
         assertTrue(body.contains("quiet-water"))
-        assertTrue(body.contains("Quiet Water"))
         assertFalse(body.contains("test-secret"))
     }
 
@@ -41,16 +44,26 @@ class RegistrationFlowTest {
         fixture.handler.handle(candleEvent(eventId = "candle-1"))
         assertTrue(fixture.sender.sent.isEmpty())
 
-        fixture.handler.handle(acceptedEvent())
+        fixture.handler.handle(acceptedEvent(accountName = "Quiet Water"))
 
         assertEquals(1, fixture.sender.sent.size)
         val body = fixture.sender.sent.single().value
         assertTrue(body.contains("strategy.recommendation.created"))
         assertTrue(body.contains("HOLD"))
         assertTrue(body.contains("candle-1"))
-        assertTrue(body.contains("\"secretKey\":\"sek\""))
+        assertTrue(body.contains("\"secretKey\":\"student\""))
+        assertFalse(body.contains("sek"))
         assertFalse(body.contains("test-secret"))
         assertEquals(RegistrationPhase.ACCEPTED, fixture.session.phase())
+    }
+
+    @Test
+    fun foreignAcceptanceDoesNotOpenOurSession() {
+        val fixture = fixture()
+        fixture.handler.handle(acceptedEvent(accountName = "Another student"))
+
+        assertEquals(RegistrationPhase.PENDING, fixture.session.phase())
+        assertTrue(fixture.sender.sent.isEmpty())
     }
 
     @Test
@@ -72,7 +85,8 @@ class RegistrationFlowTest {
                 "KAFKA_USERNAME" to "student",
                 "KAFKA_PASSWORD" to "test-secret",
                 "KAFKA_TOPIC" to "market.candle.internal",
-                "KAFKA_GROUP_ID" to "quiet-water-test"
+                "KAFKA_GROUP_ID" to "quiet-water-test",
+                "GROUP_ID" to "test-group"
             )
         )
         val log = StructuredLog(LoggerFactory.getLogger("test.registration"))
@@ -93,7 +107,7 @@ class RegistrationFlowTest {
             session = session,
             processClosedCandle = ProcessClosedCandle(
                 store = InMemoryInstrumentWindowStore(maxCandlesPerInstrument = 32),
-                policy = WalkForwardPolicy(config.walkForwardParameters),
+                baseline = config.baselineHold,
                 publisher = publisher
             ),
             mapper = CandleMessageMapper(),
@@ -134,7 +148,7 @@ class RegistrationFlowTest {
         """.trimIndent()
     }
 
-    private fun acceptedEvent(): String {
+    private fun acceptedEvent(accountName: String): String {
         return """
             {
               "eventId": "accepted-1",
@@ -144,9 +158,9 @@ class RegistrationFlowTest {
               "producer": "platform",
               "payload": {
                 "accountId": "acc",
+                "accountName": "$accountName",
                 "groupId": "grp",
-                "sessionId": "ses",
-                "secretKey": "sek"
+                "sessionId": "ses"
               }
             }
         """.trimIndent()
@@ -160,7 +174,7 @@ class RegistrationFlowTest {
               "schemaVersion": "1.0",
               "occurredAt": "2026-10-22T00:00:02Z",
               "producer": "platform",
-              "payload": { "reason": "$reason" }
+              "payload": { "reason": "$reason", "accountName": "Quiet Water" }
             }
         """.trimIndent()
     }

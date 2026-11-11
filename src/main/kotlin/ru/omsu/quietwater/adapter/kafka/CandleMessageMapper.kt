@@ -30,6 +30,7 @@ class CandleMessageMapper {
         val volume = payload.number(FIELD_VOLUME) ?: 0.0
         return ClosedCandleCommand(
             sourceEventId = envelope.eventId,
+            correlationId = envelope.correlationId?.trim()?.takeIf { it.isNotEmpty() },
             candle = Candle(
                 instrument = Instrument(instrument),
                 sequenceNumber = sequence,

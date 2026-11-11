@@ -48,6 +48,7 @@ class KafkaRecommendationPublisher(
                 sourceEventId = recommendation.sourceEventId,
                 runId = recommendation.runId,
                 secretKey = credentials.secretKey,
+                studentId = config.studentId,
                 strategyId = config.strategyId,
                 accountId = credentials.accountId,
                 groupId = credentials.groupId,
@@ -57,12 +58,14 @@ class KafkaRecommendationPublisher(
                 signal = recommendation.signal.name,
                 confidence = recommendation.confidence,
                 suggestedQuantity = recommendation.suggestedQuantity,
-                dataQuality = recommendation.dataQuality
+                dataQuality = recommendation.dataQuality,
+                reason = recommendation.reason,
+                processingTimeMs = recommendation.processingTimeMs
             ),
             serializer = RecommendationPayloadDto.serializer(),
             eventId = eventId,
             occurredAt = clock().toString(),
-            correlationId = recommendation.runId,
+            correlationId = recommendation.correlationId,
             causationId = recommendation.sourceEventId
         )
         sender.send(config.outboundTopic(), recommendation.instrument.key, codec.encode(envelope))
