@@ -183,11 +183,11 @@
 - активный прогон на стенде шёл в режиме `REALTIME`, таймфрейм `1m`, топик вида `market.candle.internal`;
 - инструменты прогона: `SBER`, `T`, `TATN`, `GAZP`, `MAGN`, `MOEX`, `OZON`;
 - исходящий тип события рекомендации: `strategy.recommendation.created`, `schemaVersion` `1.0`;
-- связь свеча → рекомендация: `sourceEventId`, `runId`, `instrument`, `sequenceNumber`.
+- связь свеча → рекомендация: `sourceEventId`, `correlationId`, `causationId`, `runId`, `sequenceNumber`.
 
-**Вход (когда брокер появится).** Событие закрытой свечи. Ожидаемые поля обёртки: `eventId`, `eventType`, `schemaVersion`, `occurredAt`, `correlationId`, `causationId`, `producer`, `payload` (инструмент, OHLC, `runId`, `sequenceNumber`).
+**Вход.** Событие закрытой свечи. До обработки обязательны поля обёртки `eventId`, `eventType`, `schemaVersion`, `occurredAt`, `producer` и payload: инструмент, OHLC, `runId`, `sequenceNumber`. Пример: `src/test/resources/messages/market.candle.closed.json`.
 
-**Выход.** Одна рекомендация на одну свечу. Обязательные поля `payload` по документации платформы: `recommendationId`, `sourceEventId`, `runId`, `secretKey`, `strategyId`, `accountId`, `groupId`, `sessionId`, `instrument`, `sequenceNumber`, `signal`, `confidence`, `suggestedQuantity`, `dataQuality`.
+**Выход.** Одна рекомендация на одну принятую свечу. Сейчас сигнал всегда `HOLD`, уверенность `0`, количество `0`. Поля payload: `recommendationId`, `sourceEventId`, `runId`, `secretKey`, `studentId`, `strategyId`, `accountId`, `groupId`, `sessionId`, `instrument`, `sequenceNumber`, `signal`, `confidence`, `suggestedQuantity`, `dataQuality`, `reason`, `processingTimeMs`. В обёртке `correlationId` и `causationId`.
 
 **Аутентификация.**
 
@@ -248,7 +248,7 @@ HTTP Basic на nginx (`realm="Teacher platform"`) защищает **учебн
 
 ### Допущения и открытые вопросы
 
-1. **Точное JSON-тело свечи** в этом репозитории ещё не законтрактовано кодом. Ориентир — глава «Событие закрытой свечи» на стенде. Открытый вопрос до задания про брокер.
+1. Обязательные поля свечи зафиксированы проверкой `CandleEventValidator` и примером сообщения. Если стенд добавит поле, его нужно включить в проверку до обработки.
 2. Имя топика результата рекомендации и регистрационный heartbeat будут взяты из документации преподавателя, не угаданы.
 3. `accountId` / `groupId` / `sessionId` выдаёт преподаватель; в `.env.example` стоят плейсхолдеры.
 4. Платформа не шлёт реальные заявки — это факт документации, не гипотеза.

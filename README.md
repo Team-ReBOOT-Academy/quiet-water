@@ -10,6 +10,8 @@
 Автор: **llnightll**  
 Проектный документ: [docs/project-description.md](docs/project-description.md)  
 Схемы: [контекст](docs/context-diagram.md), [компоненты](docs/component-diagram.md), [GitDiagram](docs/gitdiagram.md)  
+Сценарии: [docs/use-cases.md](docs/use-cases.md)  
+Требования: [docs/requirements.md](docs/requirements.md)  
 Задачи: [docs/tasks.md](docs/tasks.md)  
 Идентификатор сервиса / `strategyId`: `quiet-water`
 
@@ -27,6 +29,8 @@
 после отправки рекомендации, см. проектный документ. В задании 1 не реализуется.
 
 Стартовые пороги (из окружения, не из кода): `N=90`, `K=45`, `M=10`, `W=20`, `T=0.55`.
+
+Пока задача стратегии не начата, в Kafka уходит только базовая рекомендация: `signal=HOLD`, `confidence=0`, `suggestedQuantity=0`.
 
 ## Требования к окружению
 

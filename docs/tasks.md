@@ -3,6 +3,7 @@
 Учёт задач ведётся в этом файле в Git.
 Отдельный трекер в [проектном документе](project-description.md) не выбирался: сдача идёт через репозиторий и стенд.
 Ссылка на список есть в [README](../README.md).
+Сценарии: [use-cases.md](use-cases.md). Требования: [requirements.md](requirements.md).
 
 У каждой задачи есть ожидаемый результат и критерии готовности.
 
@@ -28,7 +29,7 @@
 
 Критерии готовности:
 
-- в запросе есть `name`, `studentId`, `strategyId`, `serviceName`;
+- в запросе есть `accountName`, `groupId`, `secretKey`, `studentId`, `strategyId`, `serviceName`; `secretKey` — ключ, не секрет брокера;
 - эти значения не зашиты в логику отправки: их даёт конфигурация;
 - в логе есть `registration.request` и `registration.accepted` либо `registration.rejected` с полем `reason`;
 - после отказа `recommendation.withheld` есть, а `strategy.recommendation.created` нет;
@@ -38,43 +39,52 @@
 
 Статус: сделано.
 
-Ожидаемый результат: сервис подписан на `market.candle.closed` в топике преподавателя и журналирует получение свечи.
+Требования: FR-3, NFR-2, C-2. Сценарии: UC-3, UC-4.
+
+Ожидаемый результат: сервис подписан на `market.candle.closed` в топике преподавателя. Структура сообщения и обязательные поля проверяются до обработки.
 
 Критерии готовности:
 
-- событие разбирается из общей обёртки стенда;
+- до окна и публикации проверяются `eventId`, `eventType`, `schemaVersion`, `occurredAt`, `producer` и payload с инструментом, `runId`, `sequenceNumber` и OHLC;
+- неполное событие даёт отказ до обработки и не создаёт рекомендацию;
 - в журнале `candle.received` есть инструмент, `runId`, `sequenceNumber` и `sourceEventId`;
 - битая запись пропускается с `message.skipped` и не останавливает чтение;
-- повтор той же свечи не сдвигает окно второй раз.
+- повтор той же свечи не создаёт вторую рекомендацию.
 
 ## 4. Публикация рекомендации
 
 Статус: сделано.
 
-Ожидаемый результат: после успешной регистрации на каждую принятую свечу уходит одно событие `strategy.recommendation.created` с полями контракта платформы.
+Требования: FR-4, FR-6, NFR-4. Сценарии: UC-3, UC-5.
+
+Ожидаемый результат: после успешной регистрации на каждую принятую свечу уходит ровно одно событие `strategy.recommendation.created`.
 
 Критерии готовности:
 
-- в payload есть `recommendationId`, `sourceEventId`, `runId`, `secretKey`, `strategyId`, `accountId`, `groupId`, `sessionId`, `instrument`, `sequenceNumber`, `signal`, `confidence`, `suggestedQuantity`, `dataQuality`;
-- `secretKey` берётся из ответа регистрации, не из репозитория;
+- в payload есть `recommendationId`, `sourceEventId`, `runId`, `secretKey`, `studentId`, `strategyId`, `accountId`, `groupId`, `sessionId`, `instrument`, `sequenceNumber`, `signal`, `confidence`, `suggestedQuantity`, `dataQuality`, `reason`, `processingTimeMs`;
+- обёртка несёт `correlationId` и `causationId`: причина — `eventId` свечи, связь прогона — `correlationId` свечи или `runId`;
+- `secretKey` — выданный ключ из конфигурации, не секрет брокера;
 - до принятия регистрации свечи копятся и уходят сразу после `accepted`;
-- при отказе накопленные свечи не публикуются.
+- при отказе накопленные свечи не публикуются;
+- пример сообщения и автоматический разбор лежат в `src/test/resources/messages/market.candle.closed.json` и `CandleToRecommendationTest`.
 
 ## 5. HOLD
 
-Статус: сделано в коде, на стенде ещё не проверялось.
+Статус: сделано в коде, на стенде ещё не проверялось. Темы свечей пока нет, ответ регистрации на брокере не наблюдался.
 
-Ожидаемый результат: пока walk-forward в наборе или на экзамене, наружу уходит `HOLD`, количество 0 и нулевая уверенность.
+Требования: FR-5, C-4. Сценарий: UC-3.
+
+Ожидаемый результат: каждая опубликованная рекомендация имеет `signal=HOLD`, `confidence=0` и `suggestedQuantity=0`.
 
 Критерии готовности:
 
-- первые свечи дают `signal=HOLD` и `suggestedQuantity=0`;
-- `confidence` на `HOLD` равен 0;
-- сторона `BUY`/`SELL` в этих фазах не публикуется.
+- значения сигнала, уверенности, количества, `dataQuality` и `reason` читаются из `application.conf`;
+- `BUY` и `SELL` в исходящее событие не попадают;
+- автоматический тест на примере свечи проверяет эти три поля.
 
 ## 6. Реализация стратегии на прогоне
 
-Статус: ждёт стенд.
+Статус: не начата. Сейчас наружу уходит только базовый HOLD из задачи 5.
 
 Ожидаемый результат: на прогоне преподавателя сервис проходит фазы набора, экзамена и торгов. Сделка возможна только после проходного балла. Языковая модель в решение не входит.
 
