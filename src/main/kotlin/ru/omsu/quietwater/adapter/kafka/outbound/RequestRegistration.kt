@@ -25,28 +25,34 @@ class RequestRegistration(
             return
         }
         val eventId = ids()
+        session.noteRequest(eventId)
         val envelope = codec.envelope(
             eventType = config.events.registrationRequest,
             producer = config.serviceName,
             schemaVersion = config.events.schemaVersion,
             payload = RegistrationRequestPayload(
-                name = config.displayName,
+                accountName = config.displayName,
+                groupId = config.studyGroup,
+                secretKey = config.registrationSecretKey,
                 studentId = config.studentId,
                 strategyId = config.strategyId,
                 serviceName = config.serviceName
             ),
             serializer = RegistrationRequestPayload.serializer(),
             eventId = eventId,
-            occurredAt = clock().toString()
+            occurredAt = clock().toString(),
+            correlationId = eventId
         )
-        sender.send(config.outboundTopic(), config.studentId, codec.encode(envelope))
+        sender.send(config.registrationTopic, config.studentId, codec.encode(envelope))
         log.info(
             "registration.request",
             mapOf(
-                "name" to config.displayName,
+                "accountName" to config.displayName,
+                "groupId" to config.studyGroup,
                 "studentId" to config.studentId,
                 "strategyId" to config.strategyId,
                 "service" to config.serviceName,
+                "topic" to config.registrationTopic,
                 "eventId" to eventId
             )
         )

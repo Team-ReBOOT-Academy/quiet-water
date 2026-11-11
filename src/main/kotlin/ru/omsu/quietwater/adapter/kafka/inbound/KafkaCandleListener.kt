@@ -1,6 +1,7 @@
 package ru.omsu.quietwater.adapter.kafka.inbound
 
 import org.apache.kafka.clients.consumer.CloseOptions
+import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.consumer.OffsetAndMetadata
 import org.apache.kafka.clients.producer.KafkaProducer
@@ -69,7 +70,9 @@ class KafkaCandleListener(
                 currentProducer = KafkaProducer(properties.producer())
                 consumer = currentConsumer
                 producerHandle.attach(currentProducer)
-                currentConsumer.subscribe(listOf(config.inboundTopic()))
+                currentConsumer.subscribe(config.inboundTopics())
+                waitForAssignment(currentConsumer)
+                seekRegistrationToTail(currentConsumer)
                 requestRegistration.sendIfNeeded()
                 delay = config.kafkaReconnectInitialMillis
                 pollUntilStopped(currentConsumer)
@@ -105,29 +108,56 @@ class KafkaCandleListener(
         )
     }
 
+    private fun waitForAssignment(currentConsumer: KafkaConsumer<String, String>) {
+        while (running.get() && currentConsumer.assignment().isEmpty()) {
+            val records = currentConsumer.poll(Duration.ofMillis(config.kafkaPollMillis))
+            link.markUp(config.kafkaUpDetails)
+            for (record in records) {
+                if (record.topic() == config.registrationTopic) {
+                    continue
+                }
+                deliver(currentConsumer, record)
+            }
+        }
+    }
+
+    private fun seekRegistrationToTail(currentConsumer: KafkaConsumer<String, String>) {
+        val partitions = currentConsumer.assignment().filter { it.topic() == config.registrationTopic }
+        if (partitions.isNotEmpty()) {
+            currentConsumer.seekToEnd(partitions)
+        }
+    }
+
     private fun pollUntilStopped(currentConsumer: KafkaConsumer<String, String>) {
         while (running.get()) {
             val records = currentConsumer.poll(Duration.ofMillis(config.kafkaPollMillis))
             link.markUp(config.kafkaUpDetails)
             for (record in records) {
-                try {
-                    handler.handle(record.value())
-                    commit(currentConsumer, record.topic(), record.partition(), record.offset())
-                } catch (error: Exception) {
-                    if (isRetryable(error) || !running.get()) {
-                        throw error
-                    }
-                    log.warn(
-                        "message.skipped",
-                        mapOf(
-                            "reason" to log.safeReason(error, config.kafkaPassword),
-                            "topic" to record.topic(),
-                            "offset" to record.offset().toString()
-                        )
-                    )
-                    commit(currentConsumer, record.topic(), record.partition(), record.offset())
-                }
+                deliver(currentConsumer, record)
             }
+        }
+    }
+
+    private fun deliver(
+        currentConsumer: KafkaConsumer<String, String>,
+        record: ConsumerRecord<String, String>
+    ) {
+        try {
+            handler.handle(record.value())
+            commit(currentConsumer, record.topic(), record.partition(), record.offset())
+        } catch (error: Exception) {
+            if (isRetryable(error) || !running.get()) {
+                throw error
+            }
+            log.warn(
+                "message.skipped",
+                mapOf(
+                    "reason" to log.safeReason(error, config.kafkaPassword),
+                    "topic" to record.topic(),
+                    "offset" to record.offset().toString()
+                )
+            )
+            commit(currentConsumer, record.topic(), record.partition(), record.offset())
         }
     }
 

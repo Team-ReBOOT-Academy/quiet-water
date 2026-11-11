@@ -12,6 +12,7 @@ class KafkaClientProperties(private val config: EnvConfig) {
         this[VALUE_DESERIALIZER] = STRING_DESERIALIZER
         this[AUTO_OFFSET_RESET] = config.kafkaAutoOffsetReset
         this[ENABLE_AUTO_COMMIT] = "false"
+        this[ALLOW_AUTO_CREATE_TOPICS] = "false"
     }
 
     fun producer(): Properties = base().apply {
@@ -53,6 +54,7 @@ class KafkaClientProperties(private val config: EnvConfig) {
         const val SASL_JAAS_CONFIG: String = "sasl.jaas.config"
         const val AUTO_OFFSET_RESET: String = "auto.offset.reset"
         const val ENABLE_AUTO_COMMIT: String = "enable.auto.commit"
+        const val ALLOW_AUTO_CREATE_TOPICS: String = "allow.auto.create.topics"
         const val KEY_DESERIALIZER: String = "key.deserializer"
         const val VALUE_DESERIALIZER: String = "value.deserializer"
         const val KEY_SERIALIZER: String = "key.serializer"

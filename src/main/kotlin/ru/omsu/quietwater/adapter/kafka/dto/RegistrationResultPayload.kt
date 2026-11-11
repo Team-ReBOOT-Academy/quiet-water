@@ -5,6 +5,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class RegistrationResultPayload(
     val accountId: String? = null,
+    val accountName: String? = null,
     val groupId: String? = null,
     val sessionId: String? = null,
     val secretKey: String? = null,

@@ -19,6 +19,7 @@ class RegistrationSession {
     private var phase: RegistrationPhase = RegistrationPhase.PENDING
     private var credentials: RegistrationCredentials? = null
     private var rejectionReason: String? = null
+    private val requestIds = mutableSetOf<String>()
 
     fun phase(): RegistrationPhase = synchronized(guard) { phase }
 
@@ -27,6 +28,19 @@ class RegistrationSession {
     fun rejectionReason(): String? = synchronized(guard) { rejectionReason }
 
     fun canPublish(): Boolean = credentials() != null && phase() == RegistrationPhase.ACCEPTED
+
+    fun noteRequest(eventId: String) {
+        synchronized(guard) {
+            requestIds.add(eventId)
+        }
+    }
+
+    fun owns(eventId: String?): Boolean {
+        if (eventId.isNullOrBlank()) {
+            return false
+        }
+        return synchronized(guard) { requestIds.contains(eventId) }
+    }
 
     fun accept(accepted: RegistrationCredentials) {
         synchronized(guard) {

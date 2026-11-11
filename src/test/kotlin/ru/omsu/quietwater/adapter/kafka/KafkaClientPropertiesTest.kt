@@ -18,6 +18,7 @@ class KafkaClientPropertiesTest {
         assertEquals("quiet-water-test", properties.getProperty(KafkaClientProperties.GROUP_ID))
         assertEquals("earliest", properties.getProperty(KafkaClientProperties.AUTO_OFFSET_RESET))
         assertEquals("false", properties.getProperty(KafkaClientProperties.ENABLE_AUTO_COMMIT))
+        assertEquals("false", properties.getProperty(KafkaClientProperties.ALLOW_AUTO_CREATE_TOPICS))
         assertEquals("SASL_SSL", properties.getProperty(KafkaClientProperties.SECURITY_PROTOCOL))
         assertEquals("SCRAM-SHA-256", properties.getProperty(KafkaClientProperties.SASL_MECHANISM))
         val jaas = properties.getProperty(KafkaClientProperties.SASL_JAAS_CONFIG)
