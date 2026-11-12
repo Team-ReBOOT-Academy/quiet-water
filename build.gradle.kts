@@ -12,9 +12,16 @@ val serializationJsonVersion: String by project
 val logbackVersion: String by project
 val kafkaVersion: String by project
 val jvmToolchainVersion: String by project
+val mavenCentralUrl: String by project
+val mavenCentralMirrorUrl: String by project
 
 repositories {
-    mavenCentral()
+    maven {
+        url = uri(mavenCentralMirrorUrl)
+    }
+    maven {
+        url = uri(mavenCentralUrl)
+    }
 }
 
 kotlin {
