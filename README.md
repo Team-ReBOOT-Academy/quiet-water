@@ -123,6 +123,15 @@ docker stop quiet-water
 
 Контейнер должен корректно завершаться по `SIGTERM` (`docker stop`).
 
+## Каталоги
+
+В каждой рабочей папке лежит свой `README.md`.
+
+- [src](src/README.md) — код сервиса и тесты
+- [docs](docs/README.md) — замысел, требования, сценарии и схемы
+- [gradle](gradle/README.md) — обёртка сборки
+- [.github](.github/README.md) — проверки в GitHub Actions
+
 ## Что сознательно не входит в этот репозиторий
 
 - UI — наблюдение портфелей уже есть на платформе
