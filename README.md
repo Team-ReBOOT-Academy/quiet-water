@@ -13,6 +13,7 @@
 Сценарии: [docs/use-cases.md](docs/use-cases.md)  
 Требования: [docs/requirements.md](docs/requirements.md)  
 Задачи: [docs/tasks.md](docs/tasks.md)  
+Готовность: [docs/readiness.md](docs/readiness.md)  
 Идентификатор сервиса / `strategyId`: `quiet-water`
 
 ## Предварительно выбранная стратегия
@@ -51,6 +52,8 @@
 Секреты Kafka преподаватель выдаёт отдельно. В Git их нет.
 Имена переменных — в `.env.example`.
 Пока адрес брокера не задан, сервис поднимается в статусе `DEGRADED` и не завершается.
+
+<a id="commands"></a>
 
 ## Команды сборки и запуска без среды разработки
 
@@ -103,6 +106,8 @@ HTTP-сервер и выйти с кодом 0.
 ./gradlew installDist
 ./build/install/quiet-water/bin/quiet-water
 ```
+
+<a id="docker"></a>
 
 ### Docker (предпочтительный способ «без среды разработки»)
 
