@@ -2,6 +2,18 @@ pluginManagement {
     val kotlinVersion: String by settings
     val ktorVersion: String by settings
     val foojayResolverVersion: String by settings
+    val mavenCentralUrl: String by settings
+    val mavenCentralMirrorUrl: String by settings
+
+    repositories {
+        maven {
+            url = uri(mavenCentralMirrorUrl)
+        }
+        maven {
+            url = uri(mavenCentralUrl)
+        }
+        gradlePluginPortal()
+    }
 
     plugins {
         kotlin("jvm") version kotlinVersion
