@@ -2,4 +2,4 @@
 
 Файлы доступны тестам через class loader и не попадают в собранный сервис.
 
-- [messages](messages/README.md) — примеры платформенных событий.
+- `messages/market.candle.closed.json` — входящее событие `market.candle.closed` по SBER. Его читает `CandleToRecommendationTest`.

@@ -2,9 +2,30 @@
 
 Правила стратегии. Здесь нет Kafka, Ktor и конфигурации.
 
-- [candle](candle/README.md) — свеча и инструмент.
-- [signal](signal/README.md) — BUY, SELL, HOLD.
-- [recommendation](recommendation/README.md) — решение, которое уходит наружу.
-- [setup](setup/README.md) — сетап разворота RSI.
-- [score](score/README.md) — доля успешных исходов.
-- [walkforward](walkforward/README.md) — фазы обучения, экзамена и торговли.
+## Свеча
+
+- `candle/Candle.kt` — свеча инструмента с ценами OHLC, объёмом, номером в прогоне и проверкой, что high не ниже low.
+- `candle/Instrument.kt` — код инструмента, приведённый к непустому ключу в верхнем регистре.
+
+## Сигнал
+
+- `signal/Signal.kt` — торговое решение: BUY, SELL или HOLD.
+
+## Рекомендация
+
+- `recommendation/Recommendation.kt` — решение по свече: сигнал, уверенность, объём, качество данных и время обработки.
+
+## Сетап
+
+- `setup/RsiReversalSetup.kt` — ищет разворот по RSI Уайлдера: отскок из перепроданности даёт BUY, откат из перекупленности — SELL, иначе HOLD.
+
+## Счётчик успеха
+
+- `score/SuccessRate.kt` — доля успешных исходов в окне W и проверка, проходит ли она порог.
+
+## Walk-forward
+
+Политика «сначала молчим, потом торгуем», отдельно на каждый инструмент.
+
+- `walkforward/Phase.kt` — фаза: LEARN, EXAM, TRADE или HALT.
+- `walkforward/WalkForwardPolicy.kt` — по окну свечей решает фазу, сдачу экзамена и можно ли выпустить сигнал сетапа наружу.
