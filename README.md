@@ -112,6 +112,7 @@ HTTP-сервер и выйти с кодом 0.
 ### Docker (предпочтительный способ «без среды разработки»)
 
 ```bash
+./gradlew installDist
 docker build -t quiet-water:1.0.0 .
 docker run --rm -p 8888:8888 --name quiet-water quiet-water:1.0.0
 ```

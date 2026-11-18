@@ -1,18 +1,17 @@
-FROM eclipse-temurin:25-jdk AS build
-WORKDIR /src
-
-COPY gradlew settings.gradle.kts build.gradle.kts gradle.properties ./
-COPY gradle ./gradle
-COPY src ./src
-
-RUN chmod +x ./gradlew && ./gradlew --no-daemon installDist
-
+# Запуск уже собранного дистрибутива Gradle (installDist).
+# Компиляция внутри образа здесь не выполняется: сеть движка Docker не открывает
+# Maven Central, а auth.docker.io не отвечает (TLS handshake timeout).
+# Базовый JRE должен уже лежать локально под именем eclipse-temurin:25-jre,
+# тогда сборка не обращается к реестру.
 FROM eclipse-temurin:25-jre
+
 WORKDIR /app
 
-COPY --from=build /src/build/install/quiet-water /app
+COPY build/install/quiet-water /app
+
+# Скрипт installDist на Unix делает exec java, поэтому PID 1 ловит SIGTERM.
+RUN chmod +x /app/bin/quiet-water
 
 EXPOSE 8888
 
-# Скрипт installDist на Unix делает exec java, поэтому PID 1 ловит SIGTERM.
 ENTRYPOINT ["/app/bin/quiet-water"]

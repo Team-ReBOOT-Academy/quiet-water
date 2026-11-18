@@ -2,6 +2,8 @@
 .gradle
 .idea
 .kotlin
-build
+build/*
+!build/install/
+!build/install/**
 .env
 *.md
