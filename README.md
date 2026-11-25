@@ -114,7 +114,7 @@ HTTP-сервер и выйти с кодом 0.
 ```bash
 ./gradlew installDist
 docker build -t quiet-water:1.0.0 .
-docker run --rm -p 8888:8888 --name quiet-water quiet-water:1.0.0
+docker run --rm -p 8888:8888 --env-file .env --name quiet-water quiet-water:1.0.0
 ```
 
 Проверка и остановка:
